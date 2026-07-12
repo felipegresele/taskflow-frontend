@@ -11,14 +11,13 @@ export function FormLogin() {
     },
   });
 
-  const {mutate: login, isPending} = useLoginUser();
+  const {mutate: login, isPending, isError} = useLoginUser();
 
   const navigate = useNavigate();
 
   const onSubmit = (data: LoginRequest) => {
     login(data, {
       onSuccess: () => {
-        console.log("Dados enviados: " + data)
         navigate("/tasks")
         reset()
       },
@@ -97,6 +96,7 @@ export function FormLogin() {
           >
             {isPending ? "Entrando..." : "Entrar"} 
           </button>
+          <p className="text-red-500 font-bold">{isError ? "Usuário invalido" : null}</p>
         </form>
       </div>
     </div>

@@ -1,7 +1,10 @@
-import { useTaksData } from "../../../api/task";
+import { IoPencil, IoTrash } from "react-icons/io5";
+import { useDeleteTask, useTasksData } from "../../../api/task";
+import { Link } from "react-router-dom";
 
 export function ListTasks() {
-  const { data: lista, isPending, isError } = useTaksData();
+  const { data: lista, isPending, isError } = useTasksData();
+  const { mutate: remove } = useDeleteTask();
 
   if (isPending) {
     return (
@@ -19,12 +22,25 @@ export function ListTasks() {
     );
   }
 
+  const handleDeleteTask = (id: number) => {
+    remove({ id }, {
+      onSuccess: () => {
+        console.log("Tarefa excluida ID: " + id)
+      }
+    })
+  }
+
   return (
     <div className="min-h-screen bg-purple-50 px-4 py-10">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-purple-700 mb-6">
-          Lista de Tarefas
-        </h1>
+        <div className="flex justify-between">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">
+            Lista de Tarefas
+          </h1>
+          <Link to="/add-task" className="bg-purple-500 p-2 rounded-xl h-10 font-bold text-white cursor-pointer">
+            Adicionar
+          </Link>
+        </div>
 
         <div className="space-y-4">
           {lista?.map((item) => (
@@ -57,6 +73,8 @@ export function ListTasks() {
                 <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
                   📌 {item.status}
                 </span>
+                <button><IoPencil /></button>
+                <button onClick={() => handleDeleteTask(item.id)}><IoTrash /></button>
               </div>
             </div>
           ))}

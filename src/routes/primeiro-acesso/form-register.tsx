@@ -17,7 +17,6 @@ export function FormRegister() {
   const onSubmit = (data: RegisterRequestUser) => {
     register(data, {
       onSuccess: () => {
-        console.log(data);
         reset()
       },
     })
