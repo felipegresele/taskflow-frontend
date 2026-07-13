@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+@layer base, mantine;
+
+@import "@mantine/core/styles.layer.css" layer(mantine);

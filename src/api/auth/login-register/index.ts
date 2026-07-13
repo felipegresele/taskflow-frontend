@@ -13,7 +13,22 @@ async function registerUser(data : RegisterRequestUser): Promise<RegisterRespons
     })
 
     if (!response.ok) {
-        throw new Error("Erro ao registrar usuário");
+        let message = "Erro ao registrar usuário";
+
+        try {
+            const errorBody = await response.json();
+            const backendMessage: string = errorBody.message || errorBody.error || "";
+
+            if (backendMessage.includes("email exists")) {
+                message = "Este email já está cadastrado!";
+            } else if (backendMessage) {
+                message = backendMessage;
+            }
+        } catch {
+
+        }
+
+        throw new Error(message);
     }
 
     return response.json();

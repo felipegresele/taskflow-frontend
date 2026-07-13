@@ -35,6 +35,7 @@ async function addTasks(data: TaskRequest): Promise<TaskResponse> {
   const response = await fetch(API_URL_TASKS, {
     method: "POST",
     headers: {
+      "Content-Type":"application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
@@ -48,10 +49,54 @@ async function addTasks(data: TaskRequest): Promise<TaskResponse> {
 }
 
 export function useAddTaks() {
+
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ["add-tasks"],
     mutationFn: addTasks,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-tasks"] })
+    }
   });
+}
+
+interface UpdateProps {
+  id: number;
+  data: TaskRequest;
+}
+
+async function updateTask(data: UpdateProps) {
+  const token = authStorage.getToken();
+
+  const response = await fetch(API_URL_TASKS + `/${data.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type":"application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data.data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao atualizar tarefa");
+  }
+
+  return response.json();
+}
+
+export function useUpdateTask() {
+
+  const query = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["update-task"],
+    mutationFn: updateTask,
+    onSuccess: () => {
+      query.invalidateQueries({queryKey: ["get-tasks"]})
+    }
+  })
+
 }
 
 async function deleteTask(data: { id: number }) {
