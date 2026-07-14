@@ -1,9 +1,10 @@
 import { Controller, useForm } from "react-hook-form";
-import { Priority, Status, type TaskRequest } from "../../../schema/task";
+import { Priority, Status } from "../../../schema/task";
 import { Select } from "@mantine/core";
 import { useAddTaks } from "../../../api/task";
 import { HiChevronLeft } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import z from "zod";
 
 const inputClass = `w-full rounded-lg border px-4 py-2.5 text-gray-800 outline-none transition
   focus:ring-2 focus:ring-purple-400 focus:border-purple-400 border-gray-300`;
@@ -27,8 +28,18 @@ interface ModalAddTaskProps {
   onClose?: () => void;
 }
 
+const tasksSchema = z.object({
+  name: z.string(),
+  isCompleted: z.boolean(),
+  date: z.string(),
+  priority: z.enum(Priority).default(Priority.MEDIUM),
+  status: z.enum(Status).default(Status.PENDING),
+});
+
+type TasksListSchema = z.infer<typeof tasksSchema>;
+
 export function ModalAddTask({ onClose }: ModalAddTaskProps) {
-  const { control, reset, handleSubmit } = useForm<TaskRequest>({
+  const { control, reset, handleSubmit } = useForm<TasksListSchema>({
     defaultValues: {
       name: "",
       isCompleted: false,
@@ -38,9 +49,9 @@ export function ModalAddTask({ onClose }: ModalAddTaskProps) {
     },
   });
 
-  const { mutate: task, isPending } = useAddTaks();
+  const { mutate: task, isPending, isSuccess } = useAddTaks();
 
-  const onSubmit = (data: TaskRequest) => {
+  const onSubmit = (data: TasksListSchema) => {
     task(data, {
       onSuccess: () => {
         reset();
@@ -64,7 +75,9 @@ export function ModalAddTask({ onClose }: ModalAddTaskProps) {
           >
             <HiChevronLeft size={22} />
           </Link>
-          <h1 className="text-xl font-bold text-purple-700">Adicionar Tarefa</h1>
+          <h1 className="text-xl font-bold text-purple-700">
+            Adicionar Tarefa
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -207,6 +220,7 @@ export function ModalAddTask({ onClose }: ModalAddTaskProps) {
               {isPending ? "Salvando..." : "Salvar"}
             </button>
           </div>
+          <p className="text-center text-green-500 font-bold">{isSuccess && "Tarefa adicionada com sucesso!"}</p>
         </form>
       </div>
     </div>

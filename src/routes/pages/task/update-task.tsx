@@ -9,6 +9,7 @@ import { Select } from "@mantine/core";
 import { useUpdateTask } from "../../../api/task";
 import { HiChevronLeft } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import z from "zod";
 
 const inputClass = `w-full rounded-lg border px-4 py-2.5 text-gray-800 outline-none transition
   focus:ring-2 focus:ring-purple-400 focus:border-purple-400 border-gray-300`;
@@ -34,12 +35,22 @@ interface ModalUpdateTaskProps {
   onClose: () => void;
 }
 
+const updateTaskSchema = z.object({
+  name: z.string(),
+  isCompleted: z.boolean(),
+  date: z.string(),
+  priority: z.enum(Priority).default(Priority.MEDIUM),
+  status: z.enum(Status).default(Status.PENDING),
+});
+
+type UpdateTaskSchema = z.infer<typeof updateTaskSchema>;
+
 export function ModalUpdateTask({
   isOpen,
   task,
   onClose,
 }: ModalUpdateTaskProps) {
-  const { control, reset, handleSubmit } = useForm<TaskRequest>({
+  const { control, reset, handleSubmit } = useForm<UpdateTaskSchema>({
     values: {
       name: task.name ?? "",
       isCompleted: task.isCompleted ?? false,
@@ -51,7 +62,7 @@ export function ModalUpdateTask({
 
   const { mutate: taskUpdate, isPending } = useUpdateTask();
 
-  const onSubmit = (data: TaskRequest) => {
+  const onSubmit = (data: UpdateTaskSchema) => {
     taskUpdate(
       { id: task.id, data },
       {
