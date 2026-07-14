@@ -3,7 +3,7 @@ import { useDeleteTask, useTasksData } from "../../../api/task";
 import { Link } from "react-router-dom";
 import { ModalUpdateTask } from "./update-task";
 import type { Task } from "../../../schema/task";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 
 export function ListTasks() {
   const { data: lista, isPending, isError } = useTasksData();
@@ -26,16 +26,23 @@ export function ListTasks() {
     );
   }
 
-  const handleDeleteTask = (id: number) => {
-    remove(
-      { id },
-      {
-        onSuccess: () => {
-          console.log("Tarefa excluida ID: " + id);
+  const handleDeleteTask = useCallback(
+    (id: number) => {
+      remove(
+        { id },
+        {
+          onSuccess: () => {
+            console.log("Tarefa excluida ID: " + id);
+          },
         },
-      },
-    );
-  };
+      );
+    },
+    [remove],
+  );
+
+  const handleEditTask = useCallback((task: Task) => {
+    setEditingTask(task);
+  }, []);
 
   return (
     <div className="min-h-screen bg-purple-50 px-4 py-10">
@@ -54,44 +61,11 @@ export function ListTasks() {
 
         <div className="space-y-4">
           {lista?.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-xl shadow-md shadow-purple-100 p-5 border border-gray-100"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  {item.name}
-                </h2>
-                <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                    item.isCompleted
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {item.isCompleted ? "Finalizada" : "Pendente"}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2 text-sm text-gray-500">
-                <span className="bg-gray-100 px-2.5 py-1 rounded-md">
-                  📅 {item.date}
-                </span>
-                <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md">
-                  🏷️ {item.priority}
-                </span>
-                <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
-                  📌 {item.status}
-                </span>
-                <button onClick={() => setEditingTask(item)}>
-                  <IoPencil />
-                </button>
-
-                <button onClick={() => handleDeleteTask(item.id)}>
-                  <IoTrash />
-                </button>
-              </div>
-            </div>
+            <TaskItem
+              item={item}
+              onDelete={handleDeleteTask}
+              onEdit={handleEditTask}
+            />
           ))}
         </div>
 
@@ -112,3 +86,51 @@ export function ListTasks() {
     </div>
   );
 }
+
+interface TaskItemProps {
+  item: Task;
+  onEdit: (task: Task) => void;
+  onDelete: (id: number) => void;
+}
+
+const TaskItem = memo(function TaskItem({
+  item,
+  onEdit,
+  onDelete,
+}: TaskItemProps) {
+  return (
+    <div className="bg-white rounded-xl shadow-md shadow-purple-100 p-5 border border-gray-100">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-semibold text-gray-800">{item.name}</h2>
+        <span
+          className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+            item.isCompleted
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700"
+          }`}
+        >
+          {item.isCompleted ? "Finalizada" : "Pendente"}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+        <span className="bg-gray-100 px-2.5 py-1 rounded-md">
+          📅 {item.date}
+        </span>
+        <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md">
+          🏷️ {item.priority}
+        </span>
+        <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
+          📌 {item.status}
+        </span>
+        <button onClick={() => onEdit(item)}>
+          <IoPencil />
+        </button>
+
+        <button onClick={() => onDelete(item.id)}>
+          <IoTrash />
+        </button>
+      </div>
+    </div>
+  );
+});
