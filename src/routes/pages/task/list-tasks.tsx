@@ -1,13 +1,16 @@
 import { IoPencil, IoTrash } from "react-icons/io5";
-import { useDeleteTask, useTasksData } from "../../../api/task";
+import { useDeleteTask, useSearchTask, useTasksData } from "../../../api/task";
 import { Link } from "react-router-dom";
 import { ModalUpdateTask } from "./update-task";
 import type { Task } from "../../../schema/task";
 import { memo, useCallback, useState } from "react";
+import { SearchTask } from "./search-task";
 
 export function ListTasks() {
+  const [searchName, setSearchName] = useState("");
   const { data: lista, isPending, isError } = useTasksData();
   const { mutate: remove } = useDeleteTask();
+  const {data: searchData} = useSearchTask({name: searchName})
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   if (isPending) {
@@ -25,6 +28,8 @@ export function ListTasks() {
       </div>
     );
   }
+
+  const displayList = searchName.trim() ? searchData : lista;
 
   const handleDeleteTask = useCallback(
     (id: number) => {
@@ -59,9 +64,12 @@ export function ListTasks() {
           </Link>
         </div>
 
+        <SearchTask value={searchName} onChange={setSearchName} />
+
         <div className="space-y-4">
-          {lista?.map((item) => (
+          {displayList?.map((item) => (
             <TaskItem
+              key={item.id}
               item={item}
               onDelete={handleDeleteTask}
               onEdit={handleEditTask}
@@ -69,14 +77,14 @@ export function ListTasks() {
           ))}
         </div>
 
-        {lista?.length === 0 && (
+        {displayList?.length === 0 && (
           <p className="text-gray-400 text-center mt-10">
             Nenhuma tarefa encontrada.
           </p>
         )}
       </div>
 
-      {editingTask && (
+        {editingTask && (
         <ModalUpdateTask
           isOpen={!!editingTask}
           task={editingTask}

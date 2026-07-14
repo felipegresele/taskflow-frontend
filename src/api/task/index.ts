@@ -96,7 +96,6 @@ export function useUpdateTask() {
       query.invalidateQueries({queryKey: ["get-tasks"]})
     }
   })
-
 }
 
 async function deleteTask(data: { id: number }) {
@@ -134,4 +133,30 @@ const queryClient = useQueryClient();
         })
     }
   });
+}
+
+async function filterTasks({name}: {name: string}): Promise<Array<TaskResponse>> {
+  const token = authStorage.getToken();
+
+  const response = await fetch(API_URL_TASKS + `?name=${name}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao atualizar tarefa");
+  }
+
+  return response.json();
+}
+
+export function useSearchTask({name}: {name:string}) {
+
+  return useQuery({
+    queryKey: ["search-task", name],
+    queryFn: () => filterTasks({name}),
+    enabled: !!name, //So busca se tiver nome
+  })
 }
